@@ -1,0 +1,25 @@
+.grid-square {
+  width: 65px;
+  height: 65px;
+  text-align: center;
+  font-size: 40px;
+  line-height: 65px;
+  box-sizing: border-box;
+  border: solid 1px lightgray;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.isSelected {
+  border: solid 3px gold;
+  line-height: 61px;
+}
+
+.isRelatedToSelected {
+  border: solid 3px skyblue;
+  line-height: 61px;
+}
+
+.user-value {
+  color: orange;
+}

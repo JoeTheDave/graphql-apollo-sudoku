@@ -1,0 +1,23 @@
+type GridSquare {
+  cuid: CUID
+  id: Int!
+  number: Int!
+  relationships: [Int!]!
+  upperNeighbor: Int!
+  rightNeighbor: Int!
+  lowerNeighbor: Int!
+  leftNeighbor: Int!
+  shown: Boolean!
+  guess: Int
+}
+
+scalar Timestamp
+scalar CUID
+
+type Query {
+  gridSquares: [GridSquare]
+}
+
+type Mutation {
+  setGridSquareValue(gridSquareId: Int!, value: Int): GridSquare
+}
