@@ -1,7 +1,5 @@
 const fs = require('fs');
-const _ = require('lodash');
 const { makeExecutableSchema } = require('graphql-tools');
-const cuid = require('cuid');
 const sudokuDataService = require('./sudokuDataService');
 
 const typeDefs = fs.readFileSync('src/server/typedefs.graphql', 'utf8');
@@ -12,15 +10,14 @@ const resolvers = {
     gridSquares: () => gridSquares,
   },
   Mutation: {
-    setGridSquareValue: (_, { gridSquareId, value }) => { // What's the underscore doing here?
-      const gridSquare = gridSquares.find(_ => _.id === gridSquareId);
+    setGridSquareValue: (rootObj, { gridSquareId, value }) => {
+      const gridSquare = gridSquares.find((gs) => gs.id === gridSquareId);
       if (!gridSquare.shown) {
         gridSquare.guess = value;
       }
-
       return gridSquare;
-    }
-  }
-}
+    },
+  },
+};
 
 module.exports = makeExecutableSchema({ typeDefs, resolvers });

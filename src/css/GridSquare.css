@@ -23,3 +23,11 @@
 .user-value {
   color: orange;
 }
+
+.isWrong {
+  color: red;
+}
+
+.isOptimistic {
+  color: lightgray;
+}

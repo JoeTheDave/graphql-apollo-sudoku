@@ -4,11 +4,13 @@ import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
 import { createHttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
+import { ApolloLink } from 'apollo-link';
 import Grid from './Grid';
 import '../css/App.css';
 
-const link = createHttpLink({ uri: 'http://localhost:8008/' });
+const networkLink = createHttpLink({ uri: 'http://localhost:8008/' });
 const cache = new InMemoryCache();
+const link = ApolloLink.from([networkLink]);
 const apolloClientInstance = new ApolloClient({ cache, link });
 
 const query = gql`
@@ -54,19 +56,21 @@ class App extends Component {
       <ApolloProvider client={apolloClientInstance}>
         <div>
           <Query query={query}>
-            {({data, error, loading, refetch}) => 
+            {({ data, error, loading, client }) =>
               error || loading || !data ? null : (
                 <Mutation mutation={mutation}>
-                  {(setGridSquareValue) =>
+                  {(setGridSquareValue) => (
                     <Grid
                       gridSquares={data.gridSquares}
                       selectedGridSquareId={this.state.selectedGridSquareId}
                       selectGridSquare={this.selectGridSquare}
                       setGridSquareValue={setGridSquareValue}
+                      {...{ client }}
                     />
-                  }
+                  )}
                 </Mutation>
-              )}
+              )
+            }
           </Query>
         </div>
       </ApolloProvider>

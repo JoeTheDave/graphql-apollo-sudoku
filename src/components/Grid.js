@@ -1,13 +1,36 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { includes } from 'lodash';
 import GridSquare from './GridSquare';
 import '../css/Grid.css';
 
-class App extends Component {
+const isOptimistic = (object, cacheInstance) =>
+  cacheInstance.optimistic.some(
+    (transaction) =>
+      transaction.data[`${object.__typename}:${object.id}`] != null,
+  );
+
+class Grid extends Component {
+  static propTypes = {
+    gridSquares: PropTypes.array.isRequired,
+    selectedGridSquareId: PropTypes.number,
+    selectGridSquare: PropTypes.func.isRequired,
+    setGridSquareValue: PropTypes.func.isRequired,
+    client: PropTypes.object.isRequired,
+  };
+
+  static defaultProps = {
+    selectedGridSquareId: null,
+  };
+
   componentDidMount() {
     document.addEventListener('keydown', (event) => {
-      const selectedGridSquare = this.props.gridSquares.find(_ => _.id === this.props.selectedGridSquareId);
-      if (!selectedGridSquare) { return; }
+      const selectedGridSquare = this.props.gridSquares.find(
+        (gs) => gs.id === this.props.selectedGridSquareId,
+      );
+      if (!selectedGridSquare) {
+        return;
+      }
 
       switch (event.code) {
         case 'ArrowUp':
@@ -25,12 +48,21 @@ class App extends Component {
         default:
           break;
       }
-      if (!isNaN(event.key) && parseInt(event.key) !== 0) {
+      if (+event.key) {
         this.props.setGridSquareValue({
+          optimisticResponse: {
+            __typename: 'Mutation',
+            setGridSquareValue: {
+              __typename: 'GridSquare',
+              cuid: selectedGridSquare.cuid,
+              id: selectedGridSquare.id,
+              guess: parseInt(event.key, 10),
+            },
+          },
           variables: {
             gridSquareId: selectedGridSquare.id,
-            value: parseInt(event.key),
-          }
+            value: parseInt(event.key, 10),
+          },
         });
       }
       if (event.code === 'Space' || event.code === 'Backspace') {
@@ -38,38 +70,43 @@ class App extends Component {
           variables: {
             gridSquareId: selectedGridSquare.id,
             value: null,
-          }
+          },
         });
       }
-    })
+    });
   }
 
   isRelatedToSelected(gridSquareId) {
     const { gridSquares, selectedGridSquareId } = this.props;
     return includes(
-      (gridSquares.find(_ => _.id === selectedGridSquareId) || {}).relationships || [],
+      (gridSquares.find((_) => _.id === selectedGridSquareId) || {})
+        .relationships || [],
       gridSquareId,
-    )
+    );
   }
 
   render() {
-    const { gridSquares, selectedGridSquareId, selectGridSquare } = this.props;
+    const {
+      gridSquares,
+      selectedGridSquareId,
+      selectGridSquare,
+      client,
+    } = this.props;
     return (
       <div className="grid-container">
-        {(gridSquares || []).map((gridSquare) => {
-          return (
-            <GridSquare
-              key={gridSquare.cuid}
-              squareData={gridSquare}
-              clickHandler={selectGridSquare}
-              isSelected={selectedGridSquareId === gridSquare.id}
-              isRelatedToSelected={this.isRelatedToSelected(gridSquare.id)}
-            />
-          );
-        })}
+        {(gridSquares || []).map((gridSquare) => (
+          <GridSquare
+            key={gridSquare.cuid}
+            squareData={gridSquare}
+            clickHandler={selectGridSquare}
+            isSelected={selectedGridSquareId === gridSquare.id}
+            isRelatedToSelected={this.isRelatedToSelected(gridSquare.id)}
+            isOptimistic={isOptimistic(gridSquare, client.cache)}
+          />
+        ))}
       </div>
     );
   }
 }
 
-export default App;
+export default Grid;
